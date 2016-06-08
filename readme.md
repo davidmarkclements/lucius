@@ -1,6 +1,6 @@
 # Lucius
 
-Seneca Microservices in the Browser
+[Seneca](http://npm.im/seneca) Microservices in the Browser
 
 ## Status - Experimental
 
@@ -8,10 +8,10 @@ Seneca Microservices in the Browser
 
 ### Instantiation
 
-Call `lucius` to get a Seneca-like instance
+Call `lucius` to get a [Seneca](http://npm.im/seneca)-like instance
 
 ```js
-lucius({get: false, remote: '/api/:role/:cmd'}) => {act, add}
+lucius({get: false, remote: '/api/:role/:cmd'}) => {act, add, use}
 ```
 
 ### Options
@@ -39,6 +39,10 @@ seneca.act(args, cb)
 Triggers an action that will first match against any registered
 browser side patterns (as registered with `add`), then may hit
 a server endpoint as defined by the `api` option. 
+
+#### `use`
+
+Register a transport, see [Transports](#transports-advanced)
 
 ### Special Patterns
 
