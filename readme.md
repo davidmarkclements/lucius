@@ -14,6 +14,12 @@ Call `lucius` to get a [Seneca](http://npm.im/seneca)-like instance
 lucius({get: false, api: '/api/:role/:cmd', local: true}) => {act, add, use}
 ```
 
+#### Example
+
+```js
+var seneca = lucius()
+```
+
 ### Options
 
 * `get`: remote requests to made with GET, instead of POST, default: `false`
