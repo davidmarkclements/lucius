@@ -2796,7 +2796,7 @@ module.exports = function (opts) {
       get ? {json: true} : {method: 'POST', json: true, body: args},
       function (err, data, res) {
         if (err) { 
-          cb(err) 
+          cb && cb(err) 
           return
         }
         if (+(res.statusCode + '')[0] > 3) {
@@ -2807,10 +2807,10 @@ module.exports = function (opts) {
           e.msg = msg
           e.code = res.statusCode
           e.error = res.rawRequest.statusText
-          cb(e)
+          cb && cb(e)
           return
         }
-        cb(null, data)
+        cb && cb(null, data)
       }
     )
   }
@@ -2820,6 +2820,8 @@ var bloomrun = require('bloomrun')
 var bloom = bloomrun()
 
 module.exports = function (opts) {
+  if (!opts.local) { return }
+
   act.add = add
   return act
 
@@ -2845,7 +2847,7 @@ module.exports = function (opts) {
     }
     match(args, cb || function (err) {
       if (err) { 
-        console.error('Seneca error: ', err) 
+        console.error('Lucius error: ', err) 
       }
     })
   }
@@ -2856,7 +2858,7 @@ var http = require('./transports/http')
 
 function lucius(opts) {
   opts = opts || {}
-
+  opts.local = 'local' in opts ? opts.local : true
   var transports = [local(opts), http(opts)].filter(Boolean)
   var adders = transports.filter(function (t) { return t.add })
 
@@ -2882,7 +2884,7 @@ function lucius(opts) {
         e.code = 404
         e.msg = 'no matching pattern'
         e.errors = errs
-        cb(e)
+        cb && cb(e)
         return
       }
       transports[t](args, function (err, res) {
@@ -2892,7 +2894,7 @@ function lucius(opts) {
           enact()
           return
         }
-        cb(err, res)
+        cb && cb(err, res)
       })
     }
     enact()
@@ -2903,7 +2905,13 @@ function lucius(opts) {
     if (!(t instanceof Function)) {
       throw Error('transport must be a function')
     }
-    transports.push(t)
+    transports.push(function (args, cb) {
+      t(args, cb || function (err) {
+        if (err) {
+          console.error('Lucius error:', err)
+        }
+      })
+    })
     return this
   }
 }

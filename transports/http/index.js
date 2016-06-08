@@ -14,7 +14,7 @@ module.exports = function (opts) {
       get ? {json: true} : {method: 'POST', json: true, body: args},
       function (err, data, res) {
         if (err) { 
-          cb(err) 
+          cb && cb(err) 
           return
         }
         if (+(res.statusCode + '')[0] > 3) {
@@ -25,10 +25,10 @@ module.exports = function (opts) {
           e.msg = msg
           e.code = res.statusCode
           e.error = res.rawRequest.statusText
-          cb(e)
+          cb && cb(e)
           return
         }
-        cb(null, data)
+        cb && cb(null, data)
       }
     )
   }

@@ -2,6 +2,8 @@ var bloomrun = require('bloomrun')
 var bloom = bloomrun()
 
 module.exports = function (opts) {
+  if (!opts.local) { return }
+
   act.add = add
   return act
 
@@ -27,7 +29,7 @@ module.exports = function (opts) {
     }
     match(args, cb || function (err) {
       if (err) { 
-        console.error('Seneca error: ', err) 
+        console.error('Lucius error: ', err) 
       }
     })
   }

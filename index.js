@@ -3,7 +3,7 @@ var http = require('./transports/http')
 
 function lucius(opts) {
   opts = opts || {}
-
+  opts.local = 'local' in opts ? opts.local : true
   var transports = [local(opts), http(opts)].filter(Boolean)
   var adders = transports.filter(function (t) { return t.add })
 
@@ -29,7 +29,7 @@ function lucius(opts) {
         e.code = 404
         e.msg = 'no matching pattern'
         e.errors = errs
-        cb(e)
+        cb && cb(e)
         return
       }
       transports[t](args, function (err, res) {
@@ -39,7 +39,7 @@ function lucius(opts) {
           enact()
           return
         }
-        cb(err, res)
+        cb && cb(err, res)
       })
     }
     enact()
@@ -50,7 +50,13 @@ function lucius(opts) {
     if (!(t instanceof Function)) {
       throw Error('transport must be a function')
     }
-    transports.push(t)
+    transports.push(function (args, cb) {
+      t(args, cb || function (err) {
+        if (err) {
+          console.error('Lucius error:', err)
+        }
+      })
+    })
     return this
   }
 }
