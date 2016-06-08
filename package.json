@@ -1,7 +1,7 @@
 {
   "name": "lucius",
   "version": "0.0.0",
-  "description": "",
+  "description": "Seneca Microservices in the Browser",
   "main": "index.js",
   "scripts": {
     "dist": "browserify -r . -s lucius > lucius.js"
@@ -15,5 +15,13 @@
   },
   "devDependencies": {
     "browserify": "^13.0.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidmarkclements/lucius.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidmarkclements/lucius/issues"
+  },
+  "homepage": "https://github.com/davidmarkclements/lucius#readme"
 }
