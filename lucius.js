@@ -2802,7 +2802,7 @@ function lucius(opts) {
   }
   
   function act(args, cb) {
-    var match = bloom.lookup(args)
+    var match = bloom.list(args).pop()
     var get = args.$get || opts.get
     if (args.$post) { get = false }
 
