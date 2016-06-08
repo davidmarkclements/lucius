@@ -2779,61 +2779,68 @@ function extend() {
     return target
 }
 
-},{}],"/":[function(require,module,exports){
-var bloomrun = require('bloomrun')
+},{}],79:[function(require,module,exports){
 var request = require('xhr-request')
 var p2rx = require('path-to-regexp')
-var bloom = bloomrun()
 
 var api = '/api/:role/:cmd'
 
-function lucius(opts) {
-  opts = opts || {}
+module.exports = function (opts) {
   var remote = 'api' in opts ? opts.api : api
+  if (!remote) { return }
   remote = remote && p2rx.compile(remote)
-
-  return {
-    add: add,
-    act: act
+  return function act(args, cb) {
+    var get = args.$get || opts.get
+    if (args.$post) { get = false }
+    request(remote(args), 
+      get ? {json: true} : {method: 'POST', json: true, body: args},
+      function (err, data, res) {
+        if (err) { 
+          cb(err) 
+          return
+        }
+        if (+(res.statusCode + '')[0] > 3) {
+          var msg = res.rawRequest.responseText ? 
+            res.rawRequest.statusText + ' ' + res.rawRequest.responseText : 
+            res.rawRequest.statusText
+          var e = Error(msg)
+          e.msg = msg
+          e.code = res.statusCode
+          e.error = res.rawRequest.statusText
+          cb(e)
+          return
+        }
+        cb(null, data)
+      }
+    )
   }
+}
+},{"path-to-regexp":61,"xhr-request":63}],80:[function(require,module,exports){
+var bloomrun = require('bloomrun')
+var bloom = bloomrun()
+
+module.exports = function (opts) {
+  act.add = add
+  return act
 
   function add(pattern, fn) {
     bloom.add(pattern, fn)
   }
-  
+
   function act(args, cb) {
     var match = bloom.list(args).pop()
-    var get = args.$get || opts.get
-    if (args.$post) { get = false }
-
+    var err
     if (!match) {
-      if (!remote) {
-        cb && cb(Error('no matching pattern'))  
-        return 
-      }
-      request(remote(args), 
-        get ? {json: true} : {method: 'POST', json: true, body: args},
-        function (err, data, res) {
-          if (err) { return cb(err) }
-          if (+(res.statusCode + '')[0] > 3) {
-            var msg = res.rawRequest.responseText ? 
-              res.rawRequest.statusText + ' ' + res.rawRequest.responseText : 
-              res.rawRequest.statusText
-
-            var e = Error(msg)
-            e.msg = msg
-            e.code = res.statusCode
-            e.error = res.rawRequest.statusText
-
-            return cb(e)
-          }
-          cb(null, data)
-        }
-      )
-      return 
+      err = Error('no matching pattern')
+      err.code = 404
+      cb && cb(err)
+      return
     }
-    if (!(match instanceof Function)) {
-      cb && cb(Error('pattern matches non-function'))
+
+    if (!(match instanceof Function)) {      
+      err = Error('no matching pattern')
+      err.code = 400
+      cb && cb(err)
       return 
     }
     match(args, cb || function (err) {
@@ -2843,7 +2850,63 @@ function lucius(opts) {
     })
   }
 }
+},{"bloomrun":1}],"/":[function(require,module,exports){
+var local = require('./transports/local')
+var http = require('./transports/http')
 
+function lucius(opts) {
+  opts = opts || {}
+
+  var transports = [local(opts), http(opts)].filter(Boolean)
+  var adders = transports.filter(function (t) { return t.add })
+
+  return {
+    add: add,
+    act: act,
+    use: use
+  }
+
+  function add(pattern, fn) {
+    adders.forEach(function (t) { 
+      t.add(pattern, fn)
+    })
+    return this
+  }
+  
+  function act(args, cb) {
+    var t = 0
+    var errs = []
+    function enact() {
+      if (!transports[t]) {
+        var e = Error('no matching pattern')
+        e.code = 404
+        e.msg = 'no matching pattern'
+        e.errors = errs
+        cb(e)
+        return
+      }
+      transports[t](args, function (err, res) {
+        if (err && err.code >= 400) {
+          errs.push(err)
+          t += 1
+          enact()
+          return
+        }
+        cb(err, res)
+      })
+    }
+    enact()
+    return this
+  }
+
+  function use (t) {
+    if (!(t instanceof Function)) {
+      throw Error('transport must be a function')
+    }
+    transports.push(t)
+    return this
+  }
+}
 module.exports = lucius
-},{"bloomrun":1,"path-to-regexp":61,"xhr-request":63}]},{},[])("/")
+},{"./transports/http":79,"./transports/local":80}]},{},[])("/")
 });

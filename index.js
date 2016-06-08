@@ -1,65 +1,57 @@
-var bloomrun = require('bloomrun')
-var request = require('xhr-request')
-var p2rx = require('path-to-regexp')
-var bloom = bloomrun()
-
-var api = '/api/:role/:cmd'
+var local = require('./transports/local')
+var http = require('./transports/http')
 
 function lucius(opts) {
   opts = opts || {}
-  var remote = 'api' in opts ? opts.api : api
-  remote = remote && p2rx.compile(remote)
+
+  var transports = [local(opts), http(opts)].filter(Boolean)
+  var adders = transports.filter(function (t) { return t.add })
 
   return {
     add: add,
-    act: act
+    act: act,
+    use: use
   }
 
   function add(pattern, fn) {
-    bloom.add(pattern, fn)
+    adders.forEach(function (t) { 
+      t.add(pattern, fn)
+    })
+    return this
   }
   
   function act(args, cb) {
-    var match = bloom.list(args).pop()
-    var get = args.$get || opts.get
-    if (args.$post) { get = false }
-
-    if (!match) {
-      if (!remote) {
-        cb && cb(Error('no matching pattern'))  
-        return 
+    var t = 0
+    var errs = []
+    function enact() {
+      if (!transports[t]) {
+        var e = Error('no matching pattern')
+        e.code = 404
+        e.msg = 'no matching pattern'
+        e.errors = errs
+        cb(e)
+        return
       }
-      request(remote(args), 
-        get ? {json: true} : {method: 'POST', json: true, body: args},
-        function (err, data, res) {
-          if (err) { return cb(err) }
-          if (+(res.statusCode + '')[0] > 3) {
-            var msg = res.rawRequest.responseText ? 
-              res.rawRequest.statusText + ' ' + res.rawRequest.responseText : 
-              res.rawRequest.statusText
-
-            var e = Error(msg)
-            e.msg = msg
-            e.code = res.statusCode
-            e.error = res.rawRequest.statusText
-
-            return cb(e)
-          }
-          cb(null, data)
+      transports[t](args, function (err, res) {
+        if (err && err.code >= 400) {
+          errs.push(err)
+          t += 1
+          enact()
+          return
         }
-      )
-      return 
+        cb(err, res)
+      })
     }
-    if (!(match instanceof Function)) {
-      cb && cb(Error('pattern matches non-function'))
-      return 
+    enact()
+    return this
+  }
+
+  function use (t) {
+    if (!(t instanceof Function)) {
+      throw Error('transport must be a function')
     }
-    match(args, cb || function (err) {
-      if (err) { 
-        console.error('Seneca error: ', err) 
-      }
-    })
+    transports.push(t)
+    return this
   }
 }
-
 module.exports = lucius

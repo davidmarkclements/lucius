@@ -17,7 +17,7 @@ lucius({get: false, remote: '/api/:role/:cmd'}) => {act, add}
 ### Options
 
 * `get`: remote requests to made with GET method, default: `false`
-* `remote`: remote endpoint, where placeholder params correspond to pattern keys, default '/api/:role/:cmd'. Set to `false` to disable remote behaviour.
+* `api`: remote endpoint, where placeholder params correspond to pattern keys, default '/api/:role/:cmd'. Set to `false` to disable remote behaviour.
 
 ### Methods
 
@@ -37,7 +37,7 @@ seneca.act(args, cb)
 
 Triggers an action that will first match against any registered
 browser side patterns (as registered with `add`), then may hit
-a server endpoint as defined by the `remote` option. 
+a server endpoint as defined by the `api` option. 
 
 ### Special Patterns
 
@@ -48,7 +48,7 @@ a server endpoint as defined by the `remote` option.
 seneca.act({$get: true}, cb)
 ```
 
-In cases where a server endpoint is hit (see `remote` option and `seneca.act`), 
+In cases where a server endpoint is hit (see `api` option and `seneca.act`), 
 adding `$get: true` to the input args will force the request to be made via GET,
 and the args will **not** be sent to the server.
 
@@ -59,7 +59,7 @@ and the args will **not** be sent to the server.
 seneca.act({$post: true}, cb)
 ```
 
-In cases where a server endpoint is hit (see `remote` option and `seneca.act`), 
+In cases where a server endpoint is hit (see `api` option and `seneca.act`), 
 adding `$get: true` to the input args will force the request to be made via POST,
 and the args **will** be sent to the server.
 
