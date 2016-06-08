@@ -31,7 +31,23 @@ function lucius(opts) {
       }
       request(remote(args), 
         get ? {json: true} : {method: 'POST', json: true, body: args},
-      cb)
+        function (err, data, res) {
+          if (err) { return cb(err) }
+          if (+(res.statusCode + '')[0] > 3) {
+            var msg = res.rawRequest.responseText ? 
+              res.rawRequest.statusText + ' ' + res.rawRequest.responseText : 
+              res.rawRequest.statusText
+
+            var e = Error(msg)
+            e.msg = msg
+            e.code = res.statusCode
+            e.error = res.rawRequest.statusText
+
+            return cb(e)
+          }
+          cb(null, data)
+        }
+      )
       return 
     }
     if (!(match instanceof Function)) {
