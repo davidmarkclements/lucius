@@ -1,0 +1,19 @@
+{
+  "name": "lucius",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dist": "browserify -r . -s lucius > lucius.js"
+  },
+  "author": "David Mark Clements",
+  "license": "MIT",
+  "dependencies": {
+    "bloomrun": "^1.1.2",
+    "path-to-regexp": "^1.5.0",
+    "xhr-request": "^1.0.1"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.1"
+  }
+}
