@@ -1,6 +1,6 @@
 {
   "name": "lucius",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Seneca Microservices in the Browser",
   "main": "index.js",
   "scripts": {
