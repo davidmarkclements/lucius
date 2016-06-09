@@ -4,12 +4,15 @@
   "description": "Seneca Microservices in the Browser",
   "main": "index.js",
   "scripts": {
-    "dist": "browserify -r . -s lucius > lucius.js"
+    "lucius": "browserify -r . -s lucius > lucius.js",
+    "lucius-polymer": "browserify -r ./polymer-mixin -s lucius > lucius-polymer.js",
+    "dist": "npm run lucius & npm run lucius-polymer"
   },
   "author": "David Mark Clements",
   "license": "MIT",
   "dependencies": {
     "bloomrun": "^1.1.2",
+    "object-assign": "^4.1.0",
     "path-to-regexp": "^1.5.0",
     "xhr-request": "^1.0.1"
   },
