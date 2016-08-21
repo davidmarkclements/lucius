@@ -47,12 +47,12 @@ function lucius(opts) {
     return this
   }
 
-  function use (t) {
+  function use (t, context) {
     if (!(t instanceof Function)) {
       throw Error('transport must be a function')
     }
     transports.push(function (args, cb) {
-      t(args, cb || function (err) {
+      t.call(context || this, args, cb || function (err) {
         if (err) {
           console.error('Lucius error:', err)
         }
